@@ -1,0 +1,82 @@
+#header {
+  background-color: #eba400;
+  height: 115px;
+  margin-bottom: 30px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 2.5rem;
+  padding-top: 35px;
+  color: white;
+}
+
+ion-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 125px !important;
+  max-height: 125px !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+#name {
+    padding-left: 30px;
+}
+
+#firstName {
+    font-weight: 700;
+    font-size: 3rem;
+    color: #eba400;
+    margin-bottom: 0px;
+}
+
+#lastName {
+    font-weight: 400;
+    color: #606060;
+    font-size: 25px;
+    margin-top: 0px;
+}
+
+#detail {
+    font-weight: 700;
+    color: #545352;
+    margin-top: 50px;
+}
+
+#credentials {
+    ion-col h4 {
+        font-weight: 500;
+        font-size: 1rem;
+        color: #eba400;
+        margin: 2px 0px;
+    }
+    ion-col p {
+        color: #606060;
+        font-size: 1rem;
+        margin: 0px 0px;
+    }
+    ion-col h5 {
+        color: #606060;
+        font-size: 1.3rem;
+        margin: 2px 0px;
+    }
+}
+
+#changePassword {
+    color: #a8a7a7;
+}
+
+#breedTitle {
+    color: #606060;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 50px;
+    margin-bottom: 0px;
+}
+
+#breedNum {
+    margin-top: 0px;
+    color: #eba400;
+    font-size: 3.2rem;
+    font-weight: 700;
+}

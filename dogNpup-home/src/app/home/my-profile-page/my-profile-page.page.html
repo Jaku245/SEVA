@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar class="ion-text-center">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>TailBuds</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col class="ion-align-items-center ion-text-center">
+        <div id="header">
+          <h1 class="ion-no-margin title">My Profile</h1>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <ion-grid>
+    <ion-row class="ion-justify-content-center">
+      <ion-col class="ion-align-items-center ion-text-center" size="4" size-md="2">
+        <ion-avatar size="10">
+          <img src="./../../../assets/profile-pic.jpg" alt="profile pic">
+        </ion-avatar>
+      </ion-col>
+      <ion-col size="6" size-md="2" id="name">
+        <h1 id="firstName">John</h1>
+        <h3 id="lastName">Doe</h3>
+      </ion-col>
+    </ion-row>
+    <h1 class="ion-text-center" id="detail">Details</h1>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="10" size-md=4>
+        <ion-row id="credentials">
+          <ion-col size="5">
+            <h4>Email</h4>
+          </ion-col>
+          <ion-col size="7">
+            <p>johndoe@gmail.com</p>
+          </ion-col>
+        </ion-row>
+        <ion-row id="credentials">
+          <ion-col size="5">
+            <h4>Password</h4>
+          </ion-col>
+          <ion-col size="7">
+            <h5>********</h5>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col class="ion-text-end">
+            <ion-text id="changePassword" [routerLink]="['/','home','profile','reset', 123]">change password</ion-text>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <h4 class="ion-text-center" id="breedTitle">Total added breeds</h4>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <h1 class="ion-text-center" id="breedNum">4</h1>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
