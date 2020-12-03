@@ -51,7 +51,7 @@ var professionalSchema = new mongoose.Schema({
     },
     profile_image: {
         type: String,
-        default: ''
+        default: null
     },
     about: {
         type: String

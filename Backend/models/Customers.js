@@ -41,7 +41,8 @@ var customerSchema = new mongoose.Schema({
         type: String
     },
     profile_image: {
-        type: String
+        type: String,
+        default: null
     },
     address_book: [
         {
