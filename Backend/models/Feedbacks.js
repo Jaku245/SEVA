@@ -7,9 +7,24 @@ var feedbackSchema = new mongoose.Schema({
         ref: 'Customer',
         required: true
     },
+    customer_name: {
+        type: String,
+        required: true
+    },
+    customer_image: {
+        type: String,
+        default: null
+    },
     professional_id: {
         type: ObjectId,
         ref: 'Professional'
+    },
+    professional_name: {
+        type: String,
+    },
+    professional_image: {
+        type: String,
+        default: null
     },
     booking_id: {
         type: ObjectId,
