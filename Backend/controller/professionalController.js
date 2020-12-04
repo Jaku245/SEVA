@@ -356,9 +356,9 @@ exports.submitIdentityVerification = function (req, res) {
     Professional.findById({ _id: professional_id }, function (err, professional) {
         if (professional) {
             const identityVerify = {
-                "pancard_image": req.aadharfront,
-                "aadhar_front": req.aadharback,
-                "aadhar_back": req.pancard,
+                "pancard_image": req.pancard,
+                "aadhar_front": req.aadharfront,
+                "aadhar_back": req.aadharback,
                 "address_proof": req.addressproof
             }
             professional.set("identity_proof", identityVerify)

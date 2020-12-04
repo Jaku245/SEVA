@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, PermissionsAndroid, KeyboardAvoidingView, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, PermissionsAndroid, KeyboardAvoidingView, Dimensions, Modal, ScrollView, FlatList, Alert } from 'react-native';
 import { Input } from 'react-native-elements';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Loader from '../../../shared/Loader';
@@ -19,6 +19,7 @@ import Location from '../../../shared/location'
 const { height } = Dimensions.get('window')
 
 import { env } from '../../../shared/supports';
+import states from '../../../shared/statesCities';
 class updateAddress extends Component {
 
     constructor(props) {
@@ -60,8 +61,6 @@ class updateAddress extends Component {
             name: '',
             detail1: '',
             detail2: '',
-            city: '',
-            state: '',
             type: '',
             token: null,
             customer: null,
@@ -80,9 +79,32 @@ class updateAddress extends Component {
             placesAddress: '',
 
             loaderVisible: false,
-        };
-        this.getToken();
-        this.getCustomer();
+            requestType: '',
+            selectedState: 'Select State',
+            selectedCity: 'Select City',
+            stateVisible: false,
+            cityVisible: false,
+            states: states,
+            cities: [],
+            invalidNo: false,
+            invalidLocality: false,
+            invalidState: false,
+            invalidCity: false,
+            invalidName: false,
+            invalidType: false,
+        }
+    }
+
+    toggleStateModal() {
+        this.setState({
+            stateVisible: !this.state.stateVisible
+        })
+    }
+
+    toggleCityModal() {
+        this.setState({
+            cityVisible: !this.state.cityVisible
+        })
     }
 
     showLoader() {
@@ -114,10 +136,18 @@ class updateAddress extends Component {
             .then(async data => {
                 this.setState({ gpsState: data })
                 if (data === "already-enabled") {
-                    await this.handleUserLocation()
+                    if (this.state.requestType == 'add') {
+                        await this.handleUserLocation();
+                    } else if (this.state.requestType == 'update') {
+                        await this.userLocation();
+                    }
                 } else {
                     setTimeout(async () => {
-                        await this.handleUserLocation()
+                        if (this.state.requestType == 'add') {
+                            await this.handleUserLocation();
+                        } else if (this.state.requestType == 'update') {
+                            await this.userLocation();
+                        }
                     }, 1000)
                 }
             })
@@ -125,6 +155,28 @@ class updateAddress extends Component {
                 alert("Error " + err.message + ", Code : " + err.code);
             });
     };
+
+    async userLocation() {
+        const add = this.props.route.params.address;
+        await this.map.animateToRegion({
+            ...this.state.initialRegion,
+            latitude: add.coordinates.lat,
+            longitude: add.coordinates.lng,
+            latitudeDelta: 0.0011,
+            longitudeDelta: 0.0022
+        })
+
+        await this.setState({
+            initialRegion: {
+                ...this.state.initialRegion,
+                latitude: add.coordinates.lat,
+                longitude: add.coordinates.lng,
+                latitudeDelta: 0.0011,
+                longitudeDelta: 0.0022
+            },
+            locationChoosen: true
+        })
+    }
 
     handleUserLocation = async () => {
         await Geolocation.getCurrentPosition(
@@ -293,111 +345,219 @@ class updateAddress extends Component {
             name: address.person_name,
             detail1: address.address_detail1,
             detail2: address.address_detail2,
-            city: address.city,
-            state: address.state
+            selectedCity: address.city,
+            selectedState: address.state
         });
         this.changeAddrType(address.address_type);
     }
 
-    updateAddress() {
+    async updateAddress() {
 
-        this.showLoader();
+        await this.showLoader();
 
-        if (this.props.route.name == "updateAddress") {
-            const id = this.state.id;
-            const name = this.state.name;
-            const detail1 = this.state.detail1;
-            const detail2 = this.state.detail2;
-            const city = this.state.city;
-            const state = this.state.state;
-            const type = this.state.type;
+        if (this.state.detail1 != '') {
 
-            fetch(env.api + "customer/viewaddress/" + id, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": 'Bearer ' + this.state.token
-                },
-                body:
-                    JSON.stringify(
-                        {
-                            // abbrType: '',
-                            name: name,
-                            detail1: detail1,
-                            detail2: detail2,
-                            city: city,
-                            state: state,
-                            type: type
+            if (this.state.detail2 != '') {
+
+                if (this.state.selectedState != 'Select State') {
+
+                    if (this.state.selectedCity != 'Select City') {
+
+                        if (this.state.name != '') {
+
+                            if (this.state.type != '') {
+
+                                if (this.props.route.name == "updateAddress") {
+                                    const id = this.state.id;
+                                    const name = this.state.name;
+                                    const detail1 = this.state.detail1;
+                                    const detail2 = this.state.detail2;
+                                    const city = this.state.selectedCity;
+                                    const state = this.state.selectedState;
+                                    const type = this.state.type;
+                                    const latitude = this.state.initialRegion.latitude;
+                                    const longitude = this.state.initialRegion.longitude;
+
+                                    await fetch(env.api + "customer/viewaddress/" + id, {
+                                        method: "PATCH",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "Authorization": 'Bearer ' + this.state.token
+                                        },
+                                        body:
+                                            JSON.stringify(
+                                                {
+                                                    // abbrType: '',
+                                                    name: name,
+                                                    detail1: detail1,
+                                                    detail2: detail2,
+                                                    city: city,
+                                                    state: state,
+                                                    type: type,
+                                                    latitude: latitude,
+                                                    longitude: longitude
+                                                }
+                                            )
+                                    })
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if (data.error) {
+                                                this.hideLoader();
+                                                alert(data.error);
+                                            } else {
+                                                console.log(data.message);
+                                                this.props.navigation.navigate('selectAddress');
+                                                // socket.emit("refreshAddress", {});
+                                            }
+                                        })
+                                        .catch(function (error) {
+                                            console.log('There has been a problem with your fetch operation: ' + error.message);
+                                            // ADD THIS THROW error
+                                            alert("add address unsuccessful");
+                                            throw error;
+                                        });
+                                } else {
+
+                                    const name = this.state.name;
+                                    const detail1 = this.state.detail1;
+                                    const detail2 = this.state.detail2;
+                                    const city = this.state.selectedCity;
+                                    const state = this.state.selectedState;
+                                    const type = this.state.type;
+                                    const latitude = this.state.initialRegion.latitude;
+                                    const longitude = this.state.initialRegion.longitude;
+
+                                    await fetch(env.api + "customer/addaddress", {
+                                        method: "PUT",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "Authorization": 'Bearer ' + this.state.token
+                                        },
+                                        body:
+                                            JSON.stringify(
+                                                {
+                                                    // abbrType: '',
+                                                    name: name,
+                                                    detail1: detail1,
+                                                    detail2: detail2,
+                                                    city: city,
+                                                    state: state,
+                                                    type: type,
+                                                    latitude: latitude,
+                                                    longitude: longitude
+                                                }
+                                            )
+                                    })
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if (data.error) {
+                                                this.hideLoader();
+                                                alert(data.error);
+                                            } else {
+
+                                                console.log(data.message);
+                                                this.props.navigation.navigate('selectAddress');
+                                                // socket.emit("refreshAddress", {});
+                                            }
+                                        })
+                                        .catch(function (error) {
+                                            console.log('There has been a problem with your fetch operation: ' + error.message);
+                                            // ADD THIS THROW error
+                                            alert("add address unsuccessful");
+                                            throw error;
+                                        });
+                                }
+                            } else {
+                                await this.setState({
+                                    invalidType: true
+                                });
+                                await this.hideLoader();
+                                await Alert.alert('Invalid Type', 'Please Select the address type', [
+                                    { text: 'Okay' }
+                                ]);
+                            }
+                        } else {
+                            await this.setState({
+                                invalidName: true
+                            });
+                            await this.hideLoader();
+                            await Alert.alert('Invalid Name', 'Name should not be null', [
+                                { text: 'Okay' }
+                            ]);
                         }
-                    )
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        this.hideLoader();
-                        alert(data.error);
                     } else {
-                        console.log(data.message);
-                        this.props.navigation.navigate('selectAddress');
-                        // socket.emit("refreshAddress", {});
+                        await this.setState({
+                            invalidCity: true
+                        });
+                        await this.hideLoader();
+                        await Alert.alert('Invalid City', 'City should not be null', [
+                            { text: 'Okay' }
+                        ]);
                     }
-                })
-                .catch(function (error) {
-                    console.log('There has been a problem with your fetch operation: ' + error.message);
-                    // ADD THIS THROW error
-                    alert("add address unsuccessful");
-                    throw error;
+                } else {
+                    await this.setState({
+                        invalidState: true
+                    });
+                    await this.hideLoader();
+                    await Alert.alert('Invalid State', 'State should not be null', [
+                        { text: 'Okay' }
+                    ]);
+                }
+            } else {
+                await this.setState({
+                    invalidLocality: true
                 });
+                await this.hideLoader();
+                await Alert.alert('Invalid Locality', 'Locality should not be null', [
+                    { text: 'Okay' }
+                ]);
+            }
         } else {
-
-            const name = this.state.name;
-            const detail1 = this.state.detail1;
-            const detail2 = this.state.detail2;
-            const city = this.state.city;
-            const state = this.state.state;
-            const type = this.state.type;
-
-            fetch(env.api + "customer/addaddress", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": 'Bearer ' + this.state.token
-                },
-                body:
-                    JSON.stringify(
-                        {
-                            // abbrType: '',
-                            name: name,
-                            detail1: detail1,
-                            detail2: detail2,
-                            city: city,
-                            state: state,
-                            type: type
-                        }
-                    )
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        this.hideLoader();
-                        alert(data.error);
-                    } else {
-
-                        console.log(data.message);
-                        this.props.navigation.navigate('selectAddress');
-                        // socket.emit("refreshAddress", {});
-                    }
-                })
-                .catch(function (error) {
-                    console.log('There has been a problem with your fetch operation: ' + error.message);
-                    // ADD THIS THROW error
-                    alert("add address unsuccessful");
-                    throw error;
-                });
+            await this.setState({
+                invalidNo: true
+            });
+            await this.hideLoader();
+            await Alert.alert('Invalid No.', 'No. should not be null', [
+                { text: 'Okay' }
+            ]);
         }
     }
 
     onChangeText(key, value) {
+
+        if (key == 'detail1') {
+            if (value.length > 0) {
+                this.setState({
+                    invalidNo: false
+                })
+            } else {
+                this.setState({
+                    invalidNo: true
+                })
+            }
+        }
+        if (key == 'detail2') {
+            if (value.length > 0) {
+                this.setState({
+                    invalidLocality: false
+                })
+            } else {
+                this.setState({
+                    invalidLocality: true
+                })
+            }
+        }
+        if (key == 'name') {
+            if (value.length > 0) {
+                this.setState({
+                    invalidName: false
+                })
+            } else {
+                this.setState({
+                    invalidName: true
+                })
+            }
+        }
         this.setState({
             [key]: value
         })
@@ -405,12 +565,20 @@ class updateAddress extends Component {
 
     async componentDidMount() {
         if (this.props.route.name == 'updateAddress') {
+            await this.setState({
+                requestType: 'update'
+            });
             await this.updateState();
+
+        } else {
+            await this.setState({
+                requestType: 'add'
+            });
         }
         await this.getToken();
         await this.getCustomer();
-        Geocoder.init('AIzaSyB-jyDyaOhyFGiGM0RZOBOr8H5JHjOumjo');
-        setTimeout(() => this.setState({ marginBottom: 0 }), 2000);
+        await Geocoder.init('AIzaSyB-jyDyaOhyFGiGM0RZOBOr8H5JHjOumjo');
+        await setTimeout(() => this.setState({ marginBottom: 0 }), 2000);
     }
 
     render() {
@@ -441,107 +609,198 @@ class updateAddress extends Component {
                     snappingPoints={[400]}
                     showBackdrop={true}
                     friction={0.4}
-                    >
+                >
                     <View style={styles.display}>
-                        <TouchableOpacity
-                            style={styles.mapPlacesButton}
-                            onPress={() => this.openSearchModal()}
-                        >
-                            <Text style={styles.mapPlacesAddress}>{this.state.address}</Text>
-                            <Text style={styles.mapPlacesChange}>CHANGE</Text>
-                        </TouchableOpacity>
-                        <Input
-                            value={this.state.detail1}
-                            placeholder="Flat / Building  / Colony No."
-                            // label="AddressLine 1"
-                            labelStyle={styles.label}
-                            inputContainerStyle={styles.inputStyle}
-                            // value={this.state.address.addLine1}
-                            onChangeText={(val) => this.onChangeText('detail1', val)}
-                        />
-                        <Input
-                            placeholder="Landmark / Street / Locality"
-                            // label="AddressLine 2"
-                            labelStyle={styles.label}
-                            inputContainerStyle={styles.inputStyle}
-                            value={this.state.detail2}
-                            onChangeText={(val) => this.onChangeText('detail2', val)}
-                        />
-                        <View style={styles.location}>
+                        <ScrollView>
+                            <TouchableOpacity
+                                style={styles.mapPlacesButton}
+                                onPress={() => this.openSearchModal()}
+                            >
+                                <Text style={styles.mapPlacesAddress}>{this.state.address}</Text>
+                                <Text style={styles.mapPlacesChange}>CHANGE</Text>
+                            </TouchableOpacity>
                             <Input
-                                containerStyle={styles.city}
-                                inputContainerStyle={styles.inputStyle}
-                                placeholder="City"
-                                // label="City"
+                                value={this.state.detail1}
+                                placeholder="Flat / Building  / Colony No."
+                                // label="AddressLine 1"
+                                // keyboardType='numeric'
                                 labelStyle={styles.label}
-                                value={this.state.city}
-                                onChangeText={(val) => this.onChangeText('city', val)}
+                                inputContainerStyle={this.state.invalidNo ? styles.invalidInputStyle : styles.inputStyle}
+                                // value={this.state.address.addLine1}
+                                onChangeText={(val) => this.onChangeText('detail1', val)}
                             />
                             <Input
-                                containerStyle={styles.state}
-                                inputContainerStyle={styles.inputStyle}
-                                placeholder="State"
-                                // label="State"
+                                placeholder="Landmark / Street / Locality"
+                                // label="AddressLine 2"
                                 labelStyle={styles.label}
-                                value={this.state.state}
-                                onChangeText={(val) => this.onChangeText('state', val)}
+                                inputContainerStyle={this.state.invalidLocality ? styles.invalidInputStyle : styles.inputStyle}
+                                value={this.state.detail2}
+                                onChangeText={(val) => this.onChangeText('detail2', val)}
                             />
-                        </View>
-                        <View style={styles.name}>
-                            <View style={styles.nameBtn}>
-                                <TouchableOpacity style={this.state.abbr[0].value ? styles.mrActiveBtn : styles.mrNotActiveBtn}
-                                    onPress={() => this.changeAbbr('Mr.')}
+                            <View style={styles.filterView} >
+                                <View style={styles.filterItem} >
+                                    <TouchableOpacity style={this.state.invalidState ? styles.invalidFilterItemTouch : styles.filterItemTouch}
+                                        onPress={() => this.toggleStateModal()}
+                                    >
+                                        <View style={{ flexDirection: 'row', paddingHorizontal: 5 }}>
+                                            <Text style={styles.itemValueText}>
+                                                {this.state.selectedState}
+                                            </Text>
+                                            <Ionicons style={styles.itemValueIcon} size={20} name='chevron-down-outline' />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.filterItem} >
+                                    <TouchableOpacity style={this.state.invalidCity ? styles.invalidFilterItemTouch : this.state.selectedState == 'Select State' ? styles.filterItemTouchDisable : styles.filterItemTouch}
+                                        onPress={() => this.toggleCityModal()}
+                                        disabled={this.state.selectedState == 'Select State' ? true : false}
+                                    >
+                                        <View style={{ flexDirection: 'row', paddingHorizontal: 5 }}>
+                                            <Text style={styles.itemValueText}>
+                                                {this.state.selectedCity}
+                                            </Text>
+                                            <Ionicons style={styles.itemValueIcon} size={20} name='chevron-down-outline' />
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View style={styles.name}>
+                                <View style={styles.nameBtn}>
+                                    <TouchableOpacity style={this.state.abbr[0].value ? styles.mrActiveBtn : styles.mrNotActiveBtn}
+                                        onPress={() => this.changeAbbr('Mr.')}
+                                    >
+                                        <Text style={this.state.abbr[0].value ? styles.abbrActiveText : styles.abbrNotActiveText}>Mr.</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={this.state.abbr[1].value ? styles.msActiveBtn : styles.msNotActiveBtn}
+                                        onPress={() => this.changeAbbr('Ms.')}
+                                    >
+                                        <Text style={this.state.abbr[1].value ? styles.abbrActiveText : styles.abbrNotActiveText}>Ms.</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.nameText}>
+                                    <Input
+                                        inputContainerStyle={this.state.invalidName ? styles.invalidInputStyle : styles.inputStyle}
+                                        placeholder="Name"
+                                        // label="State"
+                                        labelStyle={styles.label}
+                                        value={this.state.name}
+                                        onChangeText={(val) => this.onChangeText('name', val)}
+                                    />
+                                </View>
+                            </View>
+                            <Text style={styles.saveAs}>Save As</Text>
+                            <View style={styles.addType}>
+                                <TouchableOpacity style={this.state.addrType[0].value ? styles.activeType : styles.notActiveType}
+                                    onPress={() => this.changeAddrType('Home')}
                                 >
-                                    <Text style={this.state.abbr[0].value ? styles.abbrActiveText : styles.abbrNotActiveText}>Mr.</Text>
+                                    <Text style={this.state.addrType[0].value ? styles.activeText : styles.notActiveText}>Home</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={this.state.abbr[1].value ? styles.msActiveBtn : styles.msNotActiveBtn}
-                                    onPress={() => this.changeAbbr('Ms.')}
+                                <TouchableOpacity style={this.state.addrType[1].value ? styles.activeType : styles.notActiveType}
+                                    onPress={() => this.changeAddrType('Work')}
                                 >
-                                    <Text style={this.state.abbr[1].value ? styles.abbrActiveText : styles.abbrNotActiveText}>Ms.</Text>
+                                    <Text style={this.state.addrType[1].value ? styles.activeText : styles.notActiveText}>Work</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={this.state.addrType[2].value ? styles.activeType : styles.notActiveType}
+                                    onPress={() => this.changeAddrType('Other')}
+                                >
+                                    <Text style={this.state.addrType[2].value ? styles.activeText : styles.notActiveText}>Other</Text>
                                 </TouchableOpacity>
                             </View>
-                            <View style={styles.nameText}>
-                                <Input
-                                    inputContainerStyle={styles.inputStyle}
-                                    placeholder="Name"
-                                    // label="State"
-                                    labelStyle={styles.label}
-                                    value={this.state.name}
-                                    onChangeText={(val) => this.onChangeText('name', val)}
-                                />
+                            <View style={styles.updateAddressButton}>
+                                <TouchableOpacity style={styles.updateAddressButtonOpacity} onPress={() => {
+                                    this.updateAddress()
+                                    // navigate('selectAddress');
+                                }}>
+                                    <Text style={styles.updateAddressButtonText}>{this.props.route.name == 'updateAddress' ? 'Update Address' : 'Add Address'}</Text>
+                                    <Ionicons style={styles.updateAddressButtonIcon} name="arrow-forward-outline" color="white" size={24} />
+                                </TouchableOpacity>
                             </View>
-                        </View>
-                        <Text style={styles.saveAs}>Save As</Text>
-                        <View style={styles.addType}>
-                            <TouchableOpacity style={this.state.addrType[0].value ? styles.activeType : styles.notActiveType}
-                                onPress={() => this.changeAddrType('Home')}
-                            >
-                                <Text style={this.state.addrType[0].value ? styles.activeText : styles.notActiveText}>Home</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={this.state.addrType[1].value ? styles.activeType : styles.notActiveType}
-                                onPress={() => this.changeAddrType('Work')}
-                            >
-                                <Text style={this.state.addrType[1].value ? styles.activeText : styles.notActiveText}>Work</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={this.state.addrType[2].value ? styles.activeType : styles.notActiveType}
-                                onPress={() => this.changeAddrType('Other')}
-                            >
-                                <Text style={this.state.addrType[2].value ? styles.activeText : styles.notActiveText}>Other</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.updateAddressButton}>
-                            <TouchableOpacity style={styles.updateAddressButtonOpacity} onPress={() => {
-                                this.updateAddress()
-                                // navigate('selectAddress');
-                            }}>
-                                <Text style={styles.updateAddressButtonText}>{this.props.route.name == 'updateAddress' ? 'Update Address' : 'Add Address'}</Text>
-                                <Ionicons style={styles.updateAddressButtonIcon} name="arrow-forward-outline" color="white" size={24} />
-                            </TouchableOpacity>
-                        </View>
-                        <Loader
-                            loaderVisible={this.state.loaderVisible}
-                            animationType="fade"
-                        />
+                            <Loader
+                                loaderVisible={this.state.loaderVisible}
+                                animationType="fade"
+                            />
+                        </ScrollView>
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={this.state.stateVisible}
+                            onRequestClose={() => this.toggleStateModal()}>
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <View style={{ borderBottomWidth: 0.5, padding: "3%" }}>
+                                        <Text
+                                            style={{ fontSize: 20, fontFamily: 'Poppins-SemiBold' }}>
+                                            Select State
+                                    </Text>
+                                    </View>
+                                    <ScrollView>
+                                        <FlatList
+                                            data={this.state.states}
+                                            keyExtractor={(item, index) => index.toString()}
+                                            style={{ marginTop: 10 }}
+                                            renderItem={
+                                                ({ item }) =>
+                                                    <TouchableOpacity onPress={async () => {
+                                                        await this.setState({
+                                                            selectedState: item.state,
+                                                            cities: item.districts,
+                                                            invalidState: false
+                                                        });
+                                                        await this.toggleStateModal();
+                                                        // await console.log(item.districts);
+                                                    }}>
+                                                        <View style={styles.countryStyle}>
+                                                            <Text style={styles.textStyle}>
+                                                                {item.state}
+                                                            </Text>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                            }
+                                        />
+                                    </ScrollView>
+                                </View>
+                            </View>
+                        </Modal>
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={this.state.cityVisible}
+                            onRequestClose={() => this.toggleCityModal()}>
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <View style={{ borderBottomWidth: 0.5, padding: "3%" }}>
+                                        <Text
+                                            style={{ fontSize: 20, fontFamily: 'Poppins-SemiBold' }}>
+                                            Select City
+                                    </Text>
+                                    </View>
+                                    <ScrollView>
+                                        <FlatList
+                                            data={this.state.cities}
+                                            keyExtractor={(item, index) => index.toString()}
+                                            style={{ marginTop: 10 }}
+                                            renderItem={
+                                                ({ item }) =>
+                                                    <TouchableOpacity onPress={async () => {
+                                                        await this.setState({
+                                                            selectedCity: item,
+                                                            invalidCity: false
+                                                        });
+                                                        await this.toggleCityModal();
+                                                        // await console.log(this.state.selectedDate);
+                                                    }}>
+                                                        <View style={styles.countryStyle}>
+                                                            <Text style={styles.textStyle}>
+                                                                {item}
+                                                            </Text>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                            }
+                                        />
+                                    </ScrollView>
+                                </View>
+                            </View>
+                        </Modal>
                     </View>
                 </SlidingUpPanel>
             </KeyboardAvoidingView>
@@ -569,7 +828,6 @@ const styles = new StyleSheet.create({
         paddingBottom: "2%",
         borderBottomWidth: 1,
         borderBottomColor: "#FFBE85",
-        height: "5%"
     },
     mapPlacesAddress: {
         flex: 5,
@@ -582,7 +840,7 @@ const styles = new StyleSheet.create({
         fontWeight: 'normal'
     },
     mapPlacesChange: {
-        flex: 1,
+        flex: 2,
         alignSelf: "center",
         textAlign: 'right',
         paddingRight: "2%",
@@ -596,6 +854,7 @@ const styles = new StyleSheet.create({
         backgroundColor: 'white',
         marginTop: 15,
         paddingTop: 40,
+        paddingBottom: 150,
         paddingHorizontal: 15,
         borderTopLeftRadius: 45,
         borderTopRightRadius: 45,
@@ -614,6 +873,9 @@ const styles = new StyleSheet.create({
     },
     inputStyle: {
         borderColor: '#FFBE85'
+    },
+    invalidInputStyle: {
+        borderColor: 'red'
     },
     state: {
         flex: 1
@@ -739,5 +1001,71 @@ const styles = new StyleSheet.create({
         flex: 1,
         alignSelf: 'center',
         justifyContent: 'flex-end',
-    }
+    },
+    filterView: {
+        flexDirection: 'row',
+        paddingRight: 5,
+        marginBottom: 10
+    },
+    filterItem: {
+        flex: 1,
+        marginHorizontal: 5
+    },
+    filterItemText: {
+        fontFamily: 'Poppins-Medium',
+        textAlign: 'center'
+    },
+    filterItemTouch: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#FFBE85',
+        borderRadius: 10,
+        minHeight: 40,
+        justifyContent: 'center'
+    },
+    invalidFilterItemTouch: {
+        borderBottomWidth: 1,
+        borderBottomColor: 'red',
+        borderRadius: 10,
+        minHeight: 40,
+        justifyContent: 'center'
+    },
+    filterItemTouchDisable: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#FFBE85',
+        borderRadius: 5,
+        minHeight: 40,
+        justifyContent: 'center',
+        backgroundColor: '#e5e5e5'
+    },
+    itemValueText: {
+        fontFamily: 'Poppins-Light',
+        flex: 1,
+        paddingLeft: 5,
+        fontSize: 17
+    }, itemValueIcon: {
+        // flex:1
+    },
+    countryStyle: {
+        padding: "3%",
+    },
+    textStyle: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 20,
+        textAlign: 'center',
+        paddingRight: 10
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)'
+    },
+    modalView: {
+        backgroundColor: "white",
+        // width: '80%',
+        padding: 20,
+        borderRadius: 20,
+        elevation: 25,
+        maxHeight: '60%'
+    },
 });

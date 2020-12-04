@@ -141,7 +141,7 @@ class addProfile extends Component {
         let professionalWithOutParse = await AsyncStorage.getItem('professional');
         let professional = JSON.parse(professionalWithOutParse);
 
-        if (professional.profile_image !== '') {
+        if (professional.profile_image !== null) {
             const profile = {
                 file: this.state.profile.file,
                 fileUri: env.api + 'backend/' + professional.profile_image

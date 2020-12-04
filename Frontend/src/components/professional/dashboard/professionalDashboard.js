@@ -63,7 +63,7 @@ class professionalDashboard extends Component {
 
     renderProfile() {
         if (this.state.professional !== null) {
-            if (this.state.professional.profile_image !== "") {
+            if (this.state.professional.profile_image !== null) {
                 // console.log(this.state.professional.profile_image);
                 return (
                     <TouchableOpacity onPress={() => this.props.navigation.navigate('addProfile')}>
@@ -176,12 +176,14 @@ class professionalDashboard extends Component {
                     alert(data.error);
                 } else {
                     alert(data.message);
+                    this.getToken();
+                    this.fetchCustomer();
                 }
             });
     }
 
     async componentDidMount() {
-        
+
         this.showLoader();
         await this.getToken();
         await this.fetchCustomer();
@@ -287,104 +289,120 @@ class professionalDashboard extends Component {
                         {
                             this.state.professional
                                 ?
-                                this.state.professional.status == "Not Submitted"
+                                !this.state.professional.isFlagged
                                     ?
-                                    <View>
-                                        <View style={styles.applicationCards}>
-                                            <View style={styles.cardView}>
-                                                <Card containerStyle={styles.card} >
-                                                    <Ionicons name="newspaper-outline" size={60} style={styles.cardIcon} onPress={() => navigate('personalDetails')} />
-                                                    <Text style={styles.cardText} onPress={() => navigate('personalDetails')}>Personal Details</Text>
-                                                </Card>
-                                            </View>
-                                            <View style={styles.cardView}>
-                                                <Card containerStyle={styles.card} >
-                                                    <Ionicons name="trophy-outline" size={60}
-                                                        style={{
-                                                            flex: 2,
-                                                            alignSelf: 'center',
-                                                            justifyContent: 'center',
-                                                            paddingTop: 10
-                                                        }}
-                                                        onPress={() => navigate('identity')}
-                                                    />
-                                                    <Text style={styles.cardText} onPress={() => navigate('identity')}>Identity Verification</Text>
-                                                </Card>
-                                            </View>
-                                        </View>
-                                        <View style={styles.applicationCards}>
-                                            <View style={styles.cardView}>
-                                                <Card containerStyle={styles.card}>
-                                                    <Ionicons name="briefcase-outline" size={60} style={styles.cardIcon} onPress={() => navigate('bankDetails')} />
-                                                    <Text style={styles.cardText} onPress={() => navigate('bankDetails')}>Bank Details</Text>
-                                                </Card>
-                                            </View>
-                                            <View style={styles.cardView}>
-                                                <Card containerStyle={styles.card}>
-                                                    <Ionicons name="images-outline" size={60} style={styles.cardIcon} onPress={() => navigate('certifications')} />
-                                                    <Text style={styles.cardText} onPress={() => navigate('certifications')}>Attach Photos</Text>
-                                                </Card>
-                                            </View>
-                                        </View>
-                                    </View>
-                                    :
-                                    this.state.professional.status == "Pending for approval"
+                                    this.state.professional.status == "Not Submitted"
                                         ?
-                                        <Text style={{
-                                            fontFamily: 'Poppins-Medium',
-                                            textAlign: 'center',
-                                            fontSize: 14,
-                                            marginTop: 100,
-                                            paddingHorizontal: 20
-                                        }}>
-                                            Your application is under consideration please wait for approval.
-                                        </Text>
+                                        <View>
+                                            <View style={styles.applicationCards}>
+                                                <View style={styles.cardView}>
+                                                    <Card containerStyle={styles.card} >
+                                                        <Ionicons name="newspaper-outline" size={60} style={styles.cardIcon} onPress={() => navigate('personalDetails')} />
+                                                        <Text style={styles.cardText} onPress={() => navigate('personalDetails')}>Personal Details</Text>
+                                                    </Card>
+                                                </View>
+                                                <View style={styles.cardView}>
+                                                    <Card containerStyle={styles.card} >
+                                                        <Ionicons name="trophy-outline" size={60}
+                                                            style={{
+                                                                flex: 2,
+                                                                alignSelf: 'center',
+                                                                justifyContent: 'center',
+                                                                paddingTop: 10
+                                                            }}
+                                                            onPress={() => navigate('identity')}
+                                                        />
+                                                        <Text style={styles.cardText} onPress={() => navigate('identity')}>Identity Verification</Text>
+                                                    </Card>
+                                                </View>
+                                            </View>
+                                            <View style={styles.applicationCards}>
+                                                <View style={styles.cardView}>
+                                                    <Card containerStyle={styles.card}>
+                                                        <Ionicons name="briefcase-outline" size={60} style={styles.cardIcon} onPress={() => navigate('bankDetails')} />
+                                                        <Text style={styles.cardText} onPress={() => navigate('bankDetails')}>Bank Details</Text>
+                                                    </Card>
+                                                </View>
+                                                <View style={styles.cardView}>
+                                                    <Card containerStyle={styles.card}>
+                                                        <Ionicons name="images-outline" size={60} style={styles.cardIcon} onPress={() => navigate('certifications')} />
+                                                        <Text style={styles.cardText} onPress={() => navigate('certifications')}>Attach Photos</Text>
+                                                    </Card>
+                                                </View>
+                                            </View>
+                                        </View>
                                         :
-                                        this.state.professional.status == "Application Approved"
+                                        this.state.professional.status == "Pending for approval"
                                             ?
                                             <Text style={{
                                                 fontFamily: 'Poppins-Medium',
                                                 textAlign: 'center',
                                                 fontSize: 14,
                                                 marginTop: 100,
-                                                paddingHorizontal: 20,
-                                                color: 'green'
+                                                paddingHorizontal: 20
                                             }}>
-                                                Your Application is Approved.{'\n\n'}Daily check new requests tab for accepting requests from customers.
-                                            </Text>
+                                                Your application is under consideration please wait for approval.
+                                        </Text>
                                             :
-                                            <View>
+                                            this.state.professional.status == "Application Approved"
+                                                ?
                                                 <Text style={{
                                                     fontFamily: 'Poppins-Medium',
                                                     textAlign: 'center',
                                                     fontSize: 14,
                                                     marginTop: 100,
                                                     paddingHorizontal: 20,
-                                                    color: 'red'
+                                                    color: 'green'
                                                 }}>
-                                                    Your Application is rejected.{'\n'}You have to resubmit the data.
-                                                </Text>
-                                                <TouchableOpacity style={{
-                                                    backgroundColor: '#1c1c1c',
-                                                    height: 40,
-                                                    width: 200,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    alignSelf: 'center',
-                                                    borderRadius: 15,
-                                                    marginTop: 20
-                                                }}
-                                                    onPress={() => {
-                                                        this.resubmit();
-                                                    }}
-                                                >
+                                                    Your Application is Approved.{'\n\n'}Daily check new requests tab for accepting requests from customers.
+                                            </Text>
+                                                :
+                                                <View>
                                                     <Text style={{
                                                         fontFamily: 'Poppins-Medium',
-                                                        fontSize: 16,
-                                                        color: 'white'
-                                                    }}>Resubmit</Text>
-                                                </TouchableOpacity>
-                                            </View>
+                                                        textAlign: 'center',
+                                                        fontSize: 14,
+                                                        marginTop: 100,
+                                                        paddingHorizontal: 20,
+                                                        color: 'red'
+                                                    }}>
+                                                        Your Application is rejected.{'\n'}You have to resubmit the data.
+                                                </Text>
+                                                    <TouchableOpacity style={{
+                                                        backgroundColor: '#1c1c1c',
+                                                        height: 40,
+                                                        width: 200,
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        alignSelf: 'center',
+                                                        borderRadius: 15,
+                                                        marginTop: 20
+                                                    }}
+                                                        onPress={() => {
+                                                            this.resubmit();
+                                                        }}
+                                                    >
+                                                        <Text style={{
+                                                            fontFamily: 'Poppins-Medium',
+                                                            fontSize: 16,
+                                                            color: 'white'
+                                                        }}>Resubmit</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                    :
+                                    <Text
+                                        style={{
+                                            fontFamily: 'Poppins-Medium',
+                                            textAlign: 'center',
+                                            marginTop: 50,
+                                            fontSize: 14,
+                                            paddingHorizontal: 20
+                                        }}
+                                    >
+                                        Unfortunately, you are blocked by company.{'\n'}
+                                        because of {this.state.professional.flagReason + '.\n\n'}
+                                        To resolve the issue please visit help page.
+                                    </Text>
                                 :
                                 null
                         }
@@ -392,16 +410,20 @@ class professionalDashboard extends Component {
                     {
                         this.state.professional
                             ?
-                            this.state.professional.status == "Not Submitted"
+                            !this.state.professional.isFlagged
                                 ?
-                                <View style={styles.selectDateTimeButton}>
-                                    <TouchableOpacity style={styles.selectDateTimeButtonOpacity} onPress={() => {
-                                        this.submitForApproval();
-                                    }}>
-                                        <Text style={styles.selectDateTimeButtonText}>Submit for Approval</Text>
-                                        <Ionicons style={styles.selectDateTimeButtonIcon} name="arrow-forward-outline" color="white" size={24} />
-                                    </TouchableOpacity>
-                                </View>
+                                this.state.professional.status == "Not Submitted"
+                                    ?
+                                    <View style={styles.selectDateTimeButton}>
+                                        <TouchableOpacity style={styles.selectDateTimeButtonOpacity} onPress={() => {
+                                            this.submitForApproval();
+                                        }}>
+                                            <Text style={styles.selectDateTimeButtonText}>Submit for Approval</Text>
+                                            <Ionicons style={styles.selectDateTimeButtonIcon} name="arrow-forward-outline" color="white" size={24} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    :
+                                    null
                                 :
                                 null
                             :

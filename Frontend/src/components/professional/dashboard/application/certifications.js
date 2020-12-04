@@ -86,22 +86,22 @@ class certifications extends Component {
             let att5 = this.state.att5;
             let att6 = this.state.att6;
 
-            if (data[0] != '')
+            if (data[0] != '' && data.length > 0)
                 att1.fileUri = env.api + 'backend/' + data[0];
 
-            if (data[1] != '')
+            if (data[1] != '' && data.length > 1)
                 att2.fileUri = env.api + 'backend/' + data[1];
 
-            if (data[2] != '')
+            if (data[2] != '' && data.length > 2)
                 att3.fileUri = env.api + 'backend/' + data[2];
 
-            if (data[3] != '')
+            if (data[3] != '' && data.length > 3)
                 att4.fileUri = env.api + 'backend/' + data[3];
 
-            if (data[4] != '')
+            if (data[4] != '' && data.length > 4)
                 att5.fileUri = env.api + 'backend/' + data[4];
 
-            if (data[5] != '')
+            if (data[5] != '' && data.length > 5)
                 att6.fileUri = env.api + 'backend/' + data[5];
 
             await this.setState({

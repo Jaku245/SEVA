@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { RefreshControl, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from 'react-native';
+import { RefreshControl, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Linking } from 'react-native';
 import { AirbnbRating, Card, Divider, Input, Rating } from 'react-native-elements';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -201,6 +201,22 @@ class newRequestServiceDetails extends Component {
                     <View style={styles.bookingText}>
                         <Text style={styles.bookingTitle}>Service Location</Text>
                         <Text style={styles.bookingDesc}>{this.state.booking.service_address.address_detail1}, {this.state.booking.service_address.address_detail2}{'\n'}{this.state.booking.service_address.city}, {this.state.booking.service_address.state}</Text>
+                    </View>
+                </View>
+                <View style={styles.bookingDetails}>
+                    <View style={styles.bookingIcon}></View>
+                    <View style={styles.bookingText}>
+                        <TouchableOpacity style={styles.directionTouch}
+                            onPress={async () => {
+                                let lat = this.state.booking.service_address.coordinates.lat;
+                                let lng = this.state.booking.service_address.coordinates.lng;
+                                let directionUrl = 'https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=' + lat + ',' + lng;
+                                // console.log(directionUrl);
+                                await Linking.openURL(directionUrl);
+                            }}
+                        >
+                            <Text style={styles.directionText}>Get Directions</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
                 <View style={styles.bookingDetails}>
@@ -484,6 +500,19 @@ const styles = new StyleSheet.create({
     },
     bookingText: {
         flex: 4
+    },
+    directionTouch: {
+        backgroundColor: '#1c1c1c',
+        height: 35,
+        maxWidth: '60%',
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    directionText: {
+        fontFamily: 'Poppins-SemiBold',
+        color: 'white',
+        fontSize: 12,
     },
     bookingTitle: {
         fontFamily: 'Poppins-Medium',

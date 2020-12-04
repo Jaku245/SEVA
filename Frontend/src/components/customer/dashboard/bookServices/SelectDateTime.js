@@ -304,6 +304,8 @@ class selectDateTime extends Component {
             let addressWithOutParse = await AsyncStorage.getItem('address');
             let address = JSON.parse(addressWithOutParse);
 
+            // console.log(address);
+
             let pType = await AsyncStorage.getItem('profession');
 
             const total = this.props.route.params.total;
@@ -363,13 +365,7 @@ class selectDateTime extends Component {
                             profession_type: pType,
                             service_date: date,
                             service_time: time,
-                            address: {
-                                person_name: address.person_name,
-                                address_detail1: address.address_detail1,
-                                address_detail2: address.address_detail2,
-                                city: address.city,
-                                state: address.state
-                            },
+                            address: address,
                             service_details: parsed,
                             total_price: total
                         }

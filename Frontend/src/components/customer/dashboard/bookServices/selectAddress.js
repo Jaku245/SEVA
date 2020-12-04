@@ -134,7 +134,7 @@ class selectAddress extends Component {
             }
         });
 
-        // console.log(serviceAddress);
+        console.log(serviceAddress);
 
         await AsyncStorage.setItem('address', JSON.stringify(serviceAddress))
 

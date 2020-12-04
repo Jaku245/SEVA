@@ -383,13 +383,15 @@ class customerDashboard extends Component {
                                         style={{
                                             fontFamily: 'Poppins-Medium',
                                             textAlign: 'center',
-                                            marginTop: 10,
+                                            marginTop: 50,
                                             fontSize: 14,
-                                            paddingHorizontal: 30
+                                            paddingHorizontal: 20
                                         }}
                                     >
-                                        Unfortunately, you are blocked by company. To resolve the issue please visit help page.
-                                        </Text>
+                                        Unfortunately, you are blocked by company.{'\n'}
+                                        because of {this.state.customer.flagReason + '.\n\n'}
+                                        To resolve the issue please visit help page.
+                                    </Text>
                                 :
                                 null
                         }

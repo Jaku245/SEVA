@@ -50,14 +50,14 @@ var bookingSchema = new mongoose.Schema({
         required: true
     },
     service_address: {
-        geometry: {
-            type: {
-                type: String,
-                default: "Point"
+        coordinates: {
+            lat: {
+                type: Number,
+                required: true
             },
-            coordinates: {
-                type: [Number],
-                index: "2dsphere"
+            lng: {
+                type: Number,
+                required: true
             }
         },
         person_name: {

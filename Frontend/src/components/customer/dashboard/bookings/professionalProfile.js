@@ -181,11 +181,32 @@ class professionalProfile extends Component {
                             duration={700}
                         >
                             <View style={styles.proHead}>
-                                <Image source={carpenter} style={styles.proImg} />
+                                {
+                                    r.customer_image != null
+                                        ?
+                                        <Image source={{
+                                            uri: env.api + 'backend/' + r.customer_image
+                                        }} style={styles.proImg} />
+                                        :
+                                        <View style={{
+                                            flex: 2,
+                                            maxHeight: 50,
+                                            minHeight: 50,
+                                            minWidth: 50,
+                                            maxWidth: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: '#FAAE6B',
+                                            marginRight: 5,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <Ionicons name="person-outline" color="white" size={24} />
+                                        </View>
+                                }
                                 <View style={styles.proDetails}>
                                     <View style={styles.proHeadText}>
                                         <View style={styles.feedView}>
-                                            <Text style={styles.proName}>Jaimin Desai</Text>
+                                            <Text style={styles.proName}>{r.customer_name}</Text>
                                             <Text style={styles.feedbackDate}>{this.state.month[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear()}</Text>
                                             {/* <Text style={styles.feedbackDate}>{ this.state.month[date.getMonth()]}</Text> */}
                                         </View>
@@ -385,7 +406,7 @@ class professionalProfile extends Component {
                     this.hideRefresh();
                     alert(data.error);
                 } else {
-                    console.log(data.Professional);
+                    console.log(data.Feedbacks);
                     const feedbacks = data.Feedbacks;
                     let total = 0;
                     let count1 = 0;
@@ -645,8 +666,11 @@ const styles = new StyleSheet.create({
     proImg: {
         flex: 1,
         maxHeight: 50,
+        minHeight: 50,
+        minWidth: 50,
         maxWidth: 50,
-        borderRadius: 30,
+        borderRadius: 50,
+        backgroundColor: '#FAAE6B',
         marginRight: 5
     },
     proHeadText: {

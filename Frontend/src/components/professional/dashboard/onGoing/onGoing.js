@@ -135,22 +135,26 @@ class onGoing extends Component {
                     let todayDate = new Date();
 
                     await Bookings.forEach(b => {
-                        let date = new Date(b.service_date);
-                        if (date.getFullYear() == todayDate.getFullYear()) {
-                            if (date.getMonth() == todayDate.getMonth()) {
-                                if (date.getDate() == todayDate.getDate()) {
+                        const dateArray = b.service_date.split('/');
+                        const date = dateArray[0];
+                        const month = dateArray[1];
+                        const year = dateArray[2];
+                        // console.log(b.service_address.geometry);
+                        if (year == todayDate.getFullYear()) {
+                            if (month-1 == todayDate.getMonth()) {
+                                if (date == todayDate.getDate()) {
                                     today.push(b);
-                                } else if (date.getDate() > todayDate.getDate()) {
+                                } else if (date > todayDate.getDate()) {
                                     nextWeek.push(b);
                                 } else {
                                     inProcess.push(b);
                                 }
-                            } else if (date.getMonth() > todayDate.getMonth()) {
+                            } else if (month-1 > todayDate.getMonth()) {
                                 nextWeek.push(b);
                             } else {
                                 inProcess.push(b);
                             }
-                        } else if (date.getFullYear() > todayDate.getFullYear()) {
+                        } else if (year > todayDate.getFullYear()) {
                             nextWeek.push(b);
                         } else {
                             inProcess.push(b);

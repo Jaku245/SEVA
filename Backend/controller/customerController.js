@@ -147,12 +147,12 @@ exports.addAddress = function (req, res) {
     const id = req.userId;
     Customer.findById({ _id: id }, function (err, customer) {
         if (customer) {
-            // const coordinates = {
-            //     lat : req.body.latitude,
-            //     lng : req.body.longitude
-            // }
+            const coordinates = {
+                lat : req.body.latitude,
+                lng : req.body.longitude
+            }
             const address = {
-                // "coordinates" : coordinates,
+                "coordinates" : coordinates,
                 "person_name": req.body.name,
                 "address_detail1": req.body.detail1,
                 "address_detail2": req.body.detail2,
@@ -220,15 +220,15 @@ exports.updateAddress = function (req, res) {
     Customer.findById({ _id: id }, function (err, customer) {
         if (customer) {
             const address_id = req.params.addressId;
-            // const coordinates = {
-            //     lat : req.body.latitude,
-            //     lng : req.body.longitude
-            // }
+            const coordinates = {
+                lat : req.body.latitude,
+                lng : req.body.longitude
+            }
             Customer.updateOne(
                 { "address_book._id": address_id },
                 {
                     "$set": {
-                        // "address_book.$.coordinates" : coordinates,
+                        "address_book.$.coordinates" : coordinates,
                         "address_book.$.person_name": req.body.name,
                         "address_book.$.address_detail1": req.body.detail1,
                         "address_book.$.address_detail2": req.body.detail2,

@@ -80,13 +80,14 @@ exports.viewBookingDetails = function (req, res) {
 exports.rescheduleServiceRequest = function (req, res) {
     const bookingId = req.params.bookingId;
     const customerId = req.params.customerId;
-    Booking.updateOne(
+    Booking.findOneAndUpdate(
         { _id: bookingId, customer_id: customerId },
         { "$set": { service_date: req.body.service_date, service_time: req.body.service_time } },
-        function (err, booking) {
-            if (booking) {
+        function (err, bookingDetails) {
+            if (bookingDetails) {
                 return res.status(500).json({
-                    message: "Your service has been successfully reschedule."
+                    message: "Your service has been successfully reschedule.",
+                    bookingDetails
                 });
             } else {
                 console.log(err);
