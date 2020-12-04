@@ -267,7 +267,7 @@ class professionalProfile extends Component {
                     <Text style={styles.catHead}>Awards & Certifications</Text>
                     <Divider style={{ width: '50%', height: 2, backgroundColor: '#FEC28E', alignSelf: 'center', marginBottom: 20 }} />
                     <View style={styles.carousel}>
-                        <Carousel
+                        {/* <Carousel
                             layout={"default"}
                             ref={ref => this.carousel = ref}
                             data={this.state.carouselItems}
@@ -279,7 +279,7 @@ class professionalProfile extends Component {
                             loopClonesPerSide={6}
                             renderItem={this.renderItemFunction}
                             onSnapToItem={index => this.setState({ activeIndex: index })}
-                        />
+                        /> */}
                     </View>
 
                     <Divider style={{ marginVertical: 20 }} />
@@ -334,7 +334,7 @@ class professionalProfile extends Component {
                             {
                                 reviewsArray.length > 0
                                     ?
-                                    review
+                                    null
                                     :
                                     <Text
                                         style={{
@@ -480,6 +480,8 @@ class professionalProfile extends Component {
 
     async handleRefresh() {
         this.showRefresh();
+        await this.getToken();
+        await this.getCustomer();
         await this.fetchProfessional();
     }
 
